@@ -18,9 +18,15 @@ spec:
         prometheus.io/port: "8080"
         prometheus.io/path: "/metrics"
     spec:
+      # Add security context at pod level
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
       containers:
       - name: app
-        image: leke1995/sample-app:latest
+        image: leke1995/sample-app:v1.0.0
         ports:
         - containerPort: 8080
           name: http
@@ -31,9 +37,11 @@ spec:
           requests:
             memory: "128Mi"
             cpu: "100m"
+            ephemeral-storage: "100Mi"
           limits:
             memory: "256Mi"
             cpu: "200m"
+            ephemeral-storage: "256Mi"
         livenessProbe:
           httpGet:
             path: /health
@@ -48,6 +56,10 @@ spec:
           periodSeconds: 5
         securityContext:
           runAsNonRoot: true
-          runAsUser: 1000
+          runAsUser: 10001
+          runAsGroup: 10001
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL

@@ -12,7 +12,7 @@ replicas:
 
 images:
   - name: leke1995/sample-app
-    newTag: staging-latest
+    newTag: v1.0.0
 
 patches:
   - patch: |-

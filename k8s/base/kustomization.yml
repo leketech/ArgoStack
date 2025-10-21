@@ -5,6 +5,8 @@ resources:
   - deployment.yml
   - service.yml
   - servicemonitor.yml
+  - pdb.yaml
+  - networkpolicy.yaml
 
 commonLabels:
   app.kubernetes.io/managed-by: argocd
