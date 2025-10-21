@@ -1,0 +1,1 @@
+[{"status":"firing","labels":{"alertname":"TestAlert","severity":"critical"},"annotations":{"summary":"This is a test alert","description":"This is a test alert to verify email configuration"},"startsAt":"2025-10-21T19:45:00Z","endsAt":"2025-10-21T19:50:00Z"}]
