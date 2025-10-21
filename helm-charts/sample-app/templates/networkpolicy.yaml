@@ -13,10 +13,30 @@ spec:
   - Ingress
   - Egress
   ingress:
+  # Allow traffic from pods with the same label (internal traffic)
   - from:
     - podSelector:
         matchLabels:
           {{- include "sample-app.selectorLabels" . | nindent 10 }}
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow traffic from any namespace with specific labels (e.g., ingress controller)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8080
+  # Allow traffic from monitoring namespace (for Prometheus scraping)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
     ports:
     - protocol: TCP
       port: 8080

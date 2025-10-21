@@ -18,6 +18,16 @@ spec:
         prometheus.io/port: "8080"
         prometheus.io/path: "/metrics"
     spec:
+      # Add host PodAntiAffinity
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: sample-app
+              topologyKey: kubernetes.io/hostname
       # Add security context at pod level
       securityContext:
         runAsNonRoot: true
@@ -27,6 +37,7 @@ spec:
       containers:
       - name: app
         image: leke1995/sample-app:v1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           name: http
