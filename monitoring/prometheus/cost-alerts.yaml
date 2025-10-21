@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-cost-alerts
+  namespace: monitoring
+data:
+  cost-alerts.yml: |
+    groups:
+      - name: cost_alerts
+        interval: 30s
+        rules:
+          # High CPU requests
+          - alert: HighCPURequests
+            expr: |
+              kube_pod_container_resource_requests{resource="cpu"} > 2
+            for: 10m
+            labels:
+              severity: warning
+              category: cost
+            annotations:
+              summary: "High CPU requests detected"
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has CPU requests > 2 cores"
+          
+          # High memory requests
+          - alert: HighMemoryRequests
+            expr: |
+              kube_pod_container_resource_requests{resource="memory"} > 4e9
+            for: 10m
+            labels:
+              severity: warning
+              category: cost
+            annotations:
+              summary: "High memory requests detected"
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has memory requests > 4GB"
+          
+          # Too many pods
+          - alert: TooManyPods
+            expr: |
+              count(kube_pod_info) > 100
+            for: 5m
+            labels:
+              severity: warning
+              category: cost
+            annotations:
+              summary: "Too many pods running"
+              description: "Cluster has {{ $value }} pods running, which may be excessive"
+          
+          # High node count
+          - alert: HighNodeCount
+            expr: |
+              count(kube_node_info) > 10
+            for: 5m
+            labels:
+              severity: warning
+              category: cost
+            annotations:
+              summary: "High node count"
+              description: "Cluster has {{ $value }} nodes, which may be excessive"

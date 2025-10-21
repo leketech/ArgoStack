@@ -1,0 +1,36 @@
+# Install with: helm install kubecost kubecost/cost-analyzer -n kubecost --create-namespace -f values.yaml
+global:
+  prometheus:
+    enabled: false
+    fqdn: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090
+  grafana:
+    enabled: false
+    domainName: prometheus-grafana.monitoring.svc
+
+kubecostProductConfigs:
+  productKey:
+    enabled: false
+  
+  clusterName: "devops-cluster"
+  
+  # Cost allocation settings
+  labelMappingConfigs:
+    enabled: true
+  
+  # AWS pricing
+  awsSpotDataRegion: "us-east-1"
+  awsSpotDataBucket: "spot-data-feed-bucket"
+  awsSpotDataPrefix: "spot-pricing"
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: kubecost.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+persistence:
+  enabled: true
+  size: 32Gi

@@ -1,0 +1,12 @@
+apiVersion: v2
+name: sample-app
+description: A Helm chart for sample application with observability
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - flask
+  - prometheus
+  - monitoring
+maintainers:
+  - name: DevOps Team

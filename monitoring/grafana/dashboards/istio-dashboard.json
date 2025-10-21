@@ -1,0 +1,146 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Istio Service Mesh",
+    "tags": ["istio", "service-mesh"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "25s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "graph",
+        "title": "Request Volume",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 9
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(istio_requests_total[5m])) by (destination_service)",
+            "legendFormat": "{{destination_service}}",
+            "refId": "A"
+          }
+        ],
+        "xaxis": {
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "reqps",
+            "show": true
+          },
+          {
+            "format": "short",
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "type": "graph",
+        "title": "Request Duration",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 12,
+          "h": 9
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket[5m])) by (destination_service, le))",
+            "legendFormat": "{{destination_service}}",
+            "refId": "A"
+          }
+        ],
+        "xaxis": {
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "ms",
+            "show": true
+          },
+          {
+            "format": "short",
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "type": "singlestat",
+        "title": "Total Requests",
+        "gridPos": {
+          "x": 0,
+          "y": 9,
+          "w": 6,
+          "h": 3
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(istio_requests_total[5m]))",
+            "refId": "A"
+          }
+        ],
+        "format": "reqps",
+        "prefix": "Requests: ",
+        "valueName": "current"
+      },
+      {
+        "id": 4,
+        "type": "singlestat",
+        "title": "Error Rate",
+        "gridPos": {
+          "x": 6,
+          "y": 9,
+          "w": 6,
+          "h": 3
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(istio_requests_total{response_code=~\"5.*\"}[5m])) / sum(rate(istio_requests_total[5m]))",
+            "refId": "A"
+          }
+        ],
+        "format": "percentunit",
+        "prefix": "Errors: ",
+        "valueName": "current"
+      },
+      {
+        "id": 5,
+        "type": "graph",
+        "title": "Traffic by Response Code",
+        "gridPos": {
+          "x": 12,
+          "y": 9,
+          "w": 12,
+          "h": 9
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(istio_requests_total[5m])) by (response_code)",
+            "legendFormat": "{{response_code}}",
+            "refId": "A"
+          }
+        ],
+        "xaxis": {
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "reqps",
+            "show": true
+          },
+          {
+            "format": "short",
+            "show": true
+          }
+        ]
+      }
+    ]
+  }
+}

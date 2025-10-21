@@ -1,0 +1,104 @@
+name: Load Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of load test'
+        required: true
+        default: 'basic'
+        type: choice
+        options:
+          - basic
+          - stress
+          - spike
+          - soak
+      target_url:
+        description: 'Target URL'
+        required: true
+        default: 'http://sample-app.production.svc.cluster.local'
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+      
+      - name: Create K6 ConfigMap
+        run: |
+          kubectl create namespace testing --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create configmap k6-scripts \
+            --from-file=load-testing/k6/${{ github.event.inputs.test_type }}-test.js \
+            -n testing \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Run Load Test
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: k6-${{ github.event.inputs.test_type }}-test-${{ github.run_number }}
+            namespace: testing
+          spec:
+            template:
+              spec:
+                containers:
+                - name: k6
+                  image: grafana/k6:latest
+                  command: ['k6', 'run', '/scripts/${{ github.event.inputs.test_type }}-test.js']
+                  env:
+                  - name: BASE_URL
+                    value: "${{ github.event.inputs.target_url }}"
+                  volumeMounts:
+                  - name: scripts
+                    mountPath: /scripts
+                  resources:
+                    requests:
+                      cpu: 500m
+                      memory: 512Mi
+                restartPolicy: Never
+                volumes:
+                - name: scripts
+                  configMap:
+                    name: k6-scripts
+          EOF
+      
+      - name: Wait for test completion
+        run: |
+          kubectl wait --for=condition=complete \
+            --timeout=3600s \
+            job/k6-${{ github.event.inputs.test_type }}-test-${{ github.run_number }} \
+            -n testing
+      
+      - name: Get test results
+        run: |
+          kubectl logs -n testing \
+            job/k6-${{ github.event.inputs.test_type }}-test-${{ github.run_number }}
+      
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "Load Test Completed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Load Test Results*\n*Type:* ${{ github.event.inputs.test_type }}\n*Status:* ${{ job.status }}\n*URL:* ${{ github.event.inputs.target_url }}"
+                  }
+                }
+              ]
+            }

@@ -1,0 +1,156 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "K6 Load Testing",
+    "tags": ["k6", "load-testing"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "graph",
+        "title": "HTTP Request Rate",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 9
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(k6_http_reqs_total[5m]))",
+            "legendFormat": "Requests per second",
+            "refId": "A"
+          }
+        ],
+        "xaxis": {
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "reqps",
+            "show": true
+          },
+          {
+            "format": "short",
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "type": "graph",
+        "title": "HTTP Request Duration",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 12,
+          "h": 9
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(k6_http_req_duration_seconds_bucket[5m])) by (le))",
+            "legendFormat": "P95",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(k6_http_req_duration_seconds_bucket[5m])) by (le))",
+            "legendFormat": "P99",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "s",
+            "show": true
+          },
+          {
+            "format": "short",
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "type": "singlestat",
+        "title": "Virtual Users",
+        "gridPos": {
+          "x": 0,
+          "y": 9,
+          "w": 6,
+          "h": 3
+        },
+        "targets": [
+          {
+            "expr": "k6_vus",
+            "refId": "A"
+          }
+        ],
+        "format": "none",
+        "prefix": "VUs: ",
+        "valueName": "current"
+      },
+      {
+        "id": 4,
+        "type": "singlestat",
+        "title": "HTTP Request Failed",
+        "gridPos": {
+          "x": 6,
+          "y": 9,
+          "w": 6,
+          "h": 3
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(k6_http_req_failed_total[5m]))",
+            "refId": "A"
+          }
+        ],
+        "format": "percentunit",
+        "prefix": "Failed: ",
+        "valueName": "current"
+      },
+      {
+        "id": 5,
+        "type": "graph",
+        "title": "Data Transfer",
+        "gridPos": {
+          "x": 12,
+          "y": 9,
+          "w": 12,
+          "h": 9
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(k6_data_sent_total[5m]))",
+            "legendFormat": "Sent",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(k6_data_received_total[5m]))",
+            "legendFormat": "Received",
+            "refId": "B"
+          }
+        ],
+        "xaxis": {
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "Bps",
+            "show": true
+          },
+          {
+            "format": "short",
+            "show": true
+          }
+        ]
+      }
+    ]
+  }
+}

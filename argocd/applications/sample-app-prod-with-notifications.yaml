@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-app-prod
+  namespace: argocd
+  annotations:
+    notifications.argoproj.io/subscribe.on-deployed.slack: "deployments"
+    notifications.argoproj.io/subscribe.on-deployed.discord: "deployments"
+    notifications.argoproj.io/subscribe.on-health-degraded.slack: "alerts"
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: "alerts"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/your-org/your-repo
+    targetRevision: main
+    path: k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

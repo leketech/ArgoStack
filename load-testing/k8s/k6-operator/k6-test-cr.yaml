@@ -1,0 +1,24 @@
+apiVersion: k6.io/v1alpha1
+kind: K6
+metadata:
+  name: k6-sample-test
+  namespace: testing
+spec:
+  parallelism: 4
+  script:
+    configMap:
+      name: k6-test-script
+      file: basic-load-test.js
+  arguments: --out influxdb=http://influxdb:8086/k6
+  runner:
+    image: grafana/k6:latest
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    env:
+    - name: BASE_URL
+      value: "http://sample-app.production.svc.cluster.local"

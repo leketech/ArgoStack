@@ -1,0 +1,39 @@
+config:
+  target: "http://sample-app.production.svc.cluster.local"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: Warm up
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: Ramp up load
+    - duration: 600
+      arrivalRate: 50
+      name: Sustained load
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+  processor: "./processor.js"
+  
+scenarios:
+  - name: "User API Flow"
+    flow:
+      - get:
+          url: "/api/users"
+          expect:
+            - statusCode: 200
+            - contentType: json
+      - think: 2
+      - get:
+          url: "/api/users/${randomNumber(1, 100)}"
+          expect:
+            - statusCode: [200, 404]
+      - think: 1
+      - post:
+          url: "/api/users"
+          json:
+            name: "${randomString()}"
+            email: "${randomString()}@example.com"
+          expect:
+            - statusCode: 201

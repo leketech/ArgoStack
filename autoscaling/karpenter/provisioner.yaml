@@ -1,0 +1,68 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  # Requirements that constrain which nodes will be created
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["spot", "on-demand"]
+    - key: kubernetes.io/arch
+      operator: In
+      values: ["amd64"]
+    - key: node.kubernetes.io/instance-type
+      operator: In
+      values: ["t3.medium", "t3.large", "t3.xlarge", "m5.large", "m5.xlarge"]
+  
+  # Limits prevent Karpenter from creating too many nodes
+  limits:
+    resources:
+      cpu: 1000
+      memory: 1000Gi
+  
+  # Priority for node template selection
+  weight: 10
+  
+  # TTL for nodes
+  ttlSecondsAfterEmpty: 30
+  ttlSecondsUntilExpired: 2592000 # 30 days
+  
+  # Provider-specific configuration
+  providerRef:
+    name: default
+
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: default
+spec:
+  subnetSelector:
+    karpenter.sh/discovery: devops-cluster
+  securityGroupSelector:
+    karpenter.sh/discovery: devops-cluster
+  instanceProfile: KarpenterNodeInstanceProfile
+  
+  # Use Spot instances for cost savings
+  amiFamily: AL2
+  
+  # Block device mappings
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 100Gi
+        volumeType: gp3
+        encrypted: true
+        deleteOnTermination: true
+  
+  # User data for node initialization
+  userData: |
+    #!/bin/bash
+    /etc/eks/bootstrap.sh devops-cluster
+  
+  # Tags
+  tags:
+    Environment: production
+    ManagedBy: karpenter
+    CostCenter: engineering
